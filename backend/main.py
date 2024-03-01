@@ -4,6 +4,7 @@ from config import app, firebase, firebaseAuth
 from firebase_admin import exceptions
 from models.user import User
 from models.grabbag import GrabBag
+from utils.password_utils import generate_salt, hash_password, validate_password
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -48,11 +49,15 @@ def register():
         })
         
     ## Create a new User for registering user and add to Firestore
+    salt = generate_salt()
+    password_hashed = hash_password(password, salt)
     new_user_kwargs = {
         "uid" : new_user_record.uid,
         "first_name" : first_name,
         "last_name" : last_name,
         "email" : email,
+        "password" : password_hashed,
+        "salt" : salt,
         "grab_bag" : new_grabBag_record[1]
     }
     new_user = User(**new_user_kwargs)
@@ -69,9 +74,16 @@ def register():
     return jsonify({
         "message" : "User successfully added to Authentication and Firestore!"
     })
-    
+
+# @app.route("/login", methods=["GET"])
+# def login():
+#     print("Render login page.")
+
+# @app.route("/<string:uid>", methods=["GET"])
+# def getGrabBagPage():
+#     print("where tf is my shit!?!?!?!??!?")
+#     validate_password()
     
     
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-    
