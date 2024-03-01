@@ -1,8 +1,9 @@
 
 from flask import request, jsonify
-from config import app, firebase, firestoreDB, firebaseAuth
+from config import app, firebase, firebaseAuth
 from firebase_admin import exceptions
 from models.user import User
+from models.grabbag import GrabBag
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -22,8 +23,7 @@ def register():
     create_user_kwargs = {
         "display_name" : first_name + ' ' + last_name,
         "email" : email,
-        "password" : password,
-        "app" : firebase
+        "password" : password
     }
     
     try:
@@ -35,18 +35,30 @@ def register():
             "message" : e
         })
         
-    ## Add User to Firestore
+    ## Create a new GrabBag for registering User and add to Firestore
+    new_grabBag = GrabBag(new_user_record.uid)
+    
+    try:
+        new_grabBag_record = new_grabBag.save_to_firestore()
+        print("GrabBag created for newly registered User!")
+    except exceptions.FirebaseError as e:
+        print(e)
+        return jsonify({
+            "message" : e
+        })
+        
+    ## Create a new User for registering user and add to Firestore
     new_user_kwargs = {
         "uid" : new_user_record.uid,
         "first_name" : first_name,
         "last_name" : last_name,
         "email" : email,
-        "grab_bag" : []
+        "grab_bag" : new_grabBag_record[1]
     }
-    
     new_user = User(**new_user_kwargs)
+    
     try:
-        firestoreDB.collection("users").document(new_user.uid).set(new_user_kwargs)
+        new_user.save_to_firestore(new_user.uid)
         print("User successfully added to Firestore.")
     except exceptions.FirebaseError as e:
         print(e)
