@@ -56,8 +56,8 @@ def register():
         "first_name" : first_name,
         "last_name" : last_name,
         "email" : email,
-        "password" : password_hashed,
-        "salt" : salt,
+        "password" : password_hashed.hex(),
+        "salt" : salt.hex(),
         "grab_bag" : new_grabBag_record[1]
     }
     new_user = User(**new_user_kwargs)

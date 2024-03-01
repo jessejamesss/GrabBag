@@ -2,11 +2,13 @@
 from config import firestoreDB
 
 class User:
-    def __init__(self, uid, first_name, last_name, email, grab_bag):
+    def __init__(self, uid, first_name, last_name, email, password, salt, grab_bag):
         self.uid = uid
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
+        self.password = password
+        self.salt = salt
         self.grab_bag = grab_bag
         
     def save_to_firestore(self,uid):
@@ -14,6 +16,8 @@ class User:
             "firstName" : self.first_name,
             "lastName" : self.last_name,
             "email" : self.email,
+            "password" : self.password,
+            "salt" : self.salt,
             "grabBag" : self.grab_bag
         }
         
